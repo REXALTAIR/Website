@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GitHub Repo Tester</title>
+    <style>
+      :root {
+        --bg: #0b1220;
+        --card: rgba(255, 255, 255, 0.06);
+        --card2: rgba(255, 255, 255, 0.085);
+        --text: rgba(255, 255, 255, 0.92);
+        --muted: rgba(255, 255, 255, 0.7);
+        --accent: #7c5cff;
+        --good: #20c997;
+        --bad: #ff5c7a;
+        --border: rgba(255, 255, 255, 0.14);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+        background: radial-gradient(900px 400px at 10% 0%, rgba(124, 92, 255, 0.35), transparent 60%),
+          radial-gradient(700px 300px at 90% 10%, rgba(32, 201, 151, 0.25), transparent 55%),
+          var(--bg);
+        color: var(--text);
+      }
+
+      .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 36px 18px 60px;
+      }
+
+      header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+
+      h1 {
+        font-size: 22px;
+        margin: 0;
+        letter-spacing: 0.2px;
+      }
+
+      .sub {
+        color: var(--muted);
+        margin: 0;
+        font-size: 13px;
+      }
+
+      .card {
+        background: linear-gradient(180deg, var(--card), rgba(255, 255, 255, 0.03));
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 14px;
+      }
+
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      label {
+        font-size: 13px;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 8px;
+      }
+
+      input[type="text"] {
+        width: min(620px, 100%);
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(0, 0, 0, 0.18);
+        color: var(--text);
+        outline: none;
+        font-size: 14px;
+      }
+
+      input[type="text"]::placeholder {
+        color: rgba(255, 255, 255, 0.45);
+      }
+
+      button {
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-weight: 650;
+        cursor: pointer;
+        background: linear-gradient(135deg, rgba(124, 92, 255, 1), rgba(124, 92, 255, 0.65));
+        color: #0b1220;
+        box-shadow: 0 12px 40px rgba(124, 92, 255, 0.25);
+        transition: transform 120ms ease, filter 120ms ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        filter: brightness(1.05);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
+        transform: none;
+      }
+
+      .status {
+        margin-top: 12px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .status strong {
+        color: var(--text);
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.4);
+      }
+
+      .dot.good {
+        background: rgba(32, 201, 151, 0.95);
+        box-shadow: 0 0 0 4px rgba(32, 201, 151, 0.15);
+      }
+
+      .dot.bad {
+        background: rgba(255, 92, 122, 0.95);
+        box-shadow: 0 0 0 4px rgba(255, 92, 122, 0.15);
+      }
+
+      .details {
+        margin-top: 14px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      @media (max-width: 860px) {
+        .details {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .metric {
+        background: rgba(255, 255, 255, 0.035);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 14px;
+        padding: 14px;
+      }
+
+      .metric .k {
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 6px;
+      }
+
+      .metric .v {
+        font-size: 16px;
+        font-weight: 750;
+      }
+
+      .metric .v a {
+        color: var(--text);
+        text-decoration: none;
+      }
+
+      .metric .v a:hover {
+        text-decoration: underline;
+      }
+
+      .meta {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.4;
+      }
+
+      .tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+      }
+
+      .tag {
+        font-size: 12px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.05);
+        color: rgba(255, 255, 255, 0.75);
+      }
+
+      .footer {
+        margin-top: 18px;
+        color: rgba(255, 255, 255, 0.55);
+        font-size: 12px;
+      }
+
+      .skeleton {
+        opacity: 0.65;
+        background: linear-gradient(90deg, rgba(255,255,255,0.06), rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+        background-size: 200% 100%;
+        animation: shimmer 1.2s infinite;
+      }
+
+      @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .error {
+        color: rgba(255, 92, 122, 0.95);
+      }
+
+      .mono {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div>
+          <h1>GitHub Repository Tester</h1>
+          <p class="sub">Paste a GitHub repo URL or <span class="mono">owner/name</span>. Fetches public repo info via GitHub API.</p>
+        </div>
+        <div class="pill" title="No auth required. Uses public endpoints." >
+          <span id="statusDot" class="dot"></span>
+          <span id="statusPill">Idle</span>
+        </div>
+      </header>
+
+      <section class="card">
+        <div class="grid">
+          <div>
+            <label for="repoInput">Repository</label>
+            <div class="row">
+              <input
+                id="repoInput"
+                type="text"
+                placeholder="https://github.com/octocat/Hello-World or octocat/Hello-World"
+                autocomplete="off"
+              />
+              <button id="fetchBtn" type="button">Fetch</button>
+            </div>
+            <div id="status" class="status" aria-live="polite"></div>
+
+            <div class="details">
+              <div class="metric">
+                <div class="k">Full name</div>
+                <div id="fullName" class="v">—</div>
+                <div id="repoUrl" class="meta"></div>
+              </div>
+
+              <div class="metric">
+                <div class="k">Visibility</div>
+                <div id="visibility" class="v">—</div>
+                <div class="tags">
+                  <span id="language" class="tag">Language: —</span>
+                  <span id="stars" class="tag">★ Stars: —</span>
+                </div>
+              </div>
+
+              <div class="metric">
+                <div class="k">Forks / Issues</div>
+                <div id="forks" class="v">—</div>
+                <div id="issues" class="meta">—</div>
+              </div>
+
+              <div class="metric">
+                <div class="k">Last update</div>
+                <div id="updatedAt" class="v">—</div>
+                <div class="meta">Fetched from GitHub API</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <div class="metric">
+              <div class="k">Quick actions</div>
+              <div class="meta" style="margin-top:10px">
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                  <button id="exampleBtn" type="button" style="background: rgba(255,255,255,0.08); color: var(--text); border:1px solid rgba(255,255,255,0.14); box-shadow:none;">Use example</button>
+                  <button id="clearBtn" type="button" style="background: rgba(255,255,255,0.06); color: var(--text); border:1px solid rgba(255,255,255,0.12); box-shadow:none;">Clear</button>
+                </div>
+                <div class="footer">
+                  API: <span class="mono">https://api.github.com/repos/{owner}/{repo}</span>
+                  <br />Note: rate limits apply.
+                </div>
+              </div>
+            </div>
+
+            <div class="metric" style="margin-top:14px">
+              <div class="k">What’s tested</div>
+              <div class="meta" style="margin-top:10px">
+                <ul style="margin:0; padding-left:18px; color: var(--muted); line-height:1.55">
+                  <li>URL parsing</li>
+                  <li>Public GitHub API calls</li>
+                  <li>DOM rendering & error handling</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const repoInput = document.getElementById('repoInput');
+      const fetchBtn = document.getElementById('fetchBtn');
+      const clearBtn = document.getElementById('clearBtn');
+      const exampleBtn = document.getElementById('exampleBtn');
+
+      const statusEl = document.getElementById('status');
+      const statusDot = document.getElementById('statusDot');
+      const statusPill = document.getElementById('statusPill');
+
+      const fullNameEl = document.getElementById('fullName');
+      const repoUrlEl = document.getElementById('repoUrl');
+      const visibilityEl = document.getElementById('visibility');
+      const languageEl = document.getElementById('language');
+      const starsEl = document.getElementById('stars');
+      const forksEl = document.getElementById('forks');
+      const issuesEl = document.getElementById('issues');
+      const updatedAtEl = document.getElementById('updatedAt');
+
+      function setPill(state, text) {
+        statusPill.textContent = text;
+        statusDot.classList.remove('good', 'bad');
+        if (state === 'good') statusDot.classList.add('good');
+        if (state === 'bad') statusDot.classList.add('bad');
+      }
+
+      function formatDate(iso) {
+        const d = new Date(iso);
+        if (Number.isNaN(d.getTime())) return iso;
+        return d.toLocaleString(undefined, { year: 'numeric', month: 'short', day: '2-digit' });
+      }
+
+      function parseRepo(input) {
+        const raw = (input || '').trim();
+        if (!raw) return null;
+
+        // Accept: owner/name
+        if (/^[^/\s]+\/[^/\s]+$/.test(raw)) {
+          const [owner, name] = raw.split('/');
+          return { owner, repo: name };
+        }
+
+        // Accept GitHub URL variants
+        // Examples:
+        // - https://github.com/owner/name
+        // - http://github.com/owner/name/
+        // - github.com/owner/name
+        // - https://www.github.com/owner/name
+        try {
+          const url = raw.startsWith('http') ? new URL(raw) : new URL('https://' + raw);
+          if (!/github\.com$/i.test(url.hostname)) return null;
+          const parts = url.pathname.split('/').filter(Boolean);
+          if (parts.length < 2) return null;
+          return { owner: parts[0], repo: parts[1] };
+        } catch {
+          return null;
+        }
+      }
+
+      function setLoading(isLoading) {
+        fetchBtn.disabled = isLoading;
+        repoInput.disabled = isLoading;
+        if (isLoading) {
+          statusEl.innerHTML = '<strong>Loading…</strong> Fetching repo info.';
+          setPill(null, 'Loading');
+        }
+      }
+
+      function clearUI() {
+        statusEl.textContent = '';
+        setPill(null, 'Idle');
+        fullNameEl.textContent = '—';
+        repoUrlEl.textContent = '';
+        visibilityEl.textContent = '—';
+        languageEl.textContent = 'Language: —';
+        starsEl.textContent = '★ Stars: —';
+        forksEl.textContent = '—';
+        issuesEl.textContent = '—';
+        updatedAtEl.textContent = '—';
+      }
+
+      async function fetchRepo() {
+        const parsed = parseRepo(repoInput.value);
+        if (!parsed) {
+          setPill('bad', 'Error');
+          statusEl.innerHTML = '<span class="error"><strong>Invalid input.</strong> Use a GitHub URL or <span class="mono">owner/name</span>.</span>';
+          return;
+        }
+
+        const { owner, repo } = parsed;
+        const apiUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`;
+
+        setLoading(true);
+        clearUI();
+
+        try {
+          const res = await fetch(apiUrl, {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/vnd.github+json'
+            }
+          });
+
+          if (!res.ok) {
+            // Common cases: 404, rate limit
+            let msg = `Request failed (${res.status}).`;
+            try {
+              const body = await res.json();
+              if (body && body.message) msg = body.message;
+            } catch {}
+
+            setPill('bad', 'Error');
+            statusEl.innerHTML = `<span class="error"><strong>Couldn’t fetch repo:</strong> ${escapeHtml(msg)}</span>`;
+            return;
+          }
+
+          const data = await res.json();
+
+          fullNameEl.innerHTML = `${escapeHtml(data.full_name || `${owner}/${repo}`)}`;
+          repoUrlEl.innerHTML = data.html_url
+            ? `<a href="${escapeAttr(data.html_url)}" target="_blank" rel="noreferrer">${escapeHtml(data.html_url)}</a>`
+            : '';
+
+          visibilityEl.textContent = data.private ? 'Private' : 'Public';
+          languageEl.textContent = `Language: ${data.language || '—'}`;
+          starsEl.textContent = `★ Stars: ${typeof data.stargazers_count === 'number' ? data.stargazers_count.toLocaleString() : '—'}`;
+
+          const forks = typeof data.forks_count === 'number' ? data.forks_count.toLocaleString() : '—';
+          const issues = typeof data.open_issues_count === 'number' ? data.open_issues_count.toLocaleString() : '—';
+          forksEl.textContent = `Forks: ${forks}`;
+          issuesEl.textContent = `Open issues: ${issues}`;
+
+          updatedAtEl.textContent = data.updated_at ? formatDate(data.updated_at) : '—';
+
+          statusEl.innerHTML = `<strong>Success.</strong> Loaded <span class="mono">${escapeHtml(data.full_name)}</span>.`;
+          setPill('good', 'Success');
+        } catch (err) {
+          setPill('bad', 'Error');
+          statusEl.innerHTML = `<span class="error"><strong>Network error:</strong> ${escapeHtml(String(err?.message || err))}</span>`;
+        } finally {
+          setLoading(false);
+          fetchBtn.disabled = false;
+          repoInput.disabled = false;
+        }
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replaceAll('&', '&amp;')
+          .replaceAll('<', '<')
+          .replaceAll('>', '>')
+          .replaceAll('"', '"')
+          .replaceAll("'", '&#039;');
+      }
+
+      function escapeAttr(str) {
+        return escapeHtml(str).replaceAll('`', '&#096;');
+      }
+
+      fetchBtn.addEventListener('click', fetchRepo);
+      repoInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') fetchRepo();
+      });
+
+      clearBtn.addEventListener('click', () => {
+        repoInput.value = '';
+        clearUI();
+      });
+
+      exampleBtn.addEventListener('click', () => {
+        repoInput.value = 'octocat/Hello-World';
+      });
+
+      clearUI();
+    </script>
+  </body>
+</html>
+
